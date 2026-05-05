@@ -1,0 +1,90 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Assets — YT Automation{% endblock %}
+{% block content %}
+<div class="p-6 max-w-6xl mx-auto">
+    <h1 class="text-2xl font-bold text-white mb-6">Asset Library</h1>
+
+    <!-- Upload -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6">
+        <h2 class="font-semibold text-white mb-3">Upload Asset</h2>
+        <form method="post" action="/admin/assets/upload" enctype="multipart/form-data" class="flex gap-3 items-end flex-wrap">
+            <div class="flex-1 min-w-48">
+                <label class="block text-sm text-gray-400 mb-1">File (video, image, audio)</label>
+                <input type="file" name="file" required accept="video/*,audio/*,image/*"
+                    class="w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-500 file:text-white file:cursor-pointer hover:file:bg-brand-600">
+            </div>
+            <button type="submit" class="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                Upload
+            </button>
+        </form>
+    </div>
+
+    <!-- Videos -->
+    {% if videos %}
+    <div class="mb-6">
+        <h2 class="font-semibold text-white mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span> Videos ({{ videos | length }})
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {% for f in videos %}
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+                <div class="h-24 bg-gray-800 rounded-lg flex items-center justify-center mb-2">
+                    <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.876V15a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <p class="text-xs text-gray-400 truncate">{{ f.name }}</p>
+                <p class="text-xs text-gray-600">{{ (f.size / 1024 / 1024) | round(1) }} MB</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Audio -->
+    {% if audio %}
+    <div class="mb-6">
+        <h2 class="font-semibold text-white mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-400"></span> Audio ({{ audio | length }})
+        </h2>
+        <div class="space-y-2">
+            {% for f in audio %}
+            <div class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                </svg>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-300 truncate">{{ f.name }}</p>
+                    <p class="text-xs text-gray-600">{{ (f.size / 1024) | round(1) }} KB</p>
+                </div>
+                <audio controls class="h-8 flex-shrink-0">
+                    <source src="{{ f.url }}" type="audio/mpeg">
+                </audio>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Misc Assets -->
+    {% if misc %}
+    <div>
+        <h2 class="font-semibold text-white mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-yellow-400"></span> Other Assets ({{ misc | length }})
+        </h2>
+        <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+            {% for f in misc %}
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-center">
+                <p class="text-gray-500 text-xs font-mono uppercase">{{ f.ext or 'FILE' }}</p>
+                <p class="text-xs text-gray-400 truncate mt-1">{{ f.name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not videos and not audio and not misc %}
+    <div class="py-16 text-center text-gray-500">No assets yet. Upload B-roll, images, or audio files above.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings — YT Automation{% endblock %}
+{% block content %}
+<div class="p-6 max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-white mb-2">Settings</h1>
+    <p class="text-gray-400 text-sm mb-6">Configure API keys and credentials. All secrets are stored in the local database.</p>
+
+    {% if saved %}
+    <div class="mb-4 p-3 bg-green-900/40 border border-green-700 rounded-lg text-green-300 text-sm">Settings saved successfully.</div>
+    {% endif %}
+
+    <form method="post" action="/admin/settings" class="space-y-6">
+        {% set group_labels = {"claude": "Claude AI", "elevenlabs": "ElevenLabs", "youtube": "YouTube", "general": "General"} %}
+        {% for group_key in ["general", "claude", "elevenlabs", "youtube"] %}
+        {% if group_key in groups %}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h2 class="font-semibold text-white mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full {% if group_key == 'claude' %}bg-orange-400{% elif group_key == 'elevenlabs' %}bg-purple-400{% elif group_key == 'youtube' %}bg-brand-500{% else %}bg-blue-400{% endif %}"></span>
+                {{ group_labels.get(group_key, group_key | title) }}
+            </h2>
+            <div class="space-y-4">
+                {% for setting in groups[group_key] %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">{{ setting.label }}</label>
+                    {% if setting.description %}
+                    <p class="text-xs text-gray-500 mb-1">{{ setting.description }}</p>
+                    {% endif %}
+                    <div class="flex gap-2">
+                        <input
+                            {% if setting.is_secret %}
+                            type="password" id="input-{{ setting.key }}"
+                            {% else %}
+                            type="text"
+                            {% endif %}
+                            name="{{ setting.key }}"
+                            value="{{ setting.value }}"
+                            placeholder="{% if setting.is_secret %}••••••••{% else %}Enter value{% endif %}"
+                            class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm font-mono focus:outline-none focus:border-brand-500">
+                        {% if setting.is_secret %}
+                        <button type="button" onclick="toggleSecret('{{ setting.key }}')"
+                            class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-400 text-xs rounded-lg transition-colors">
+                            Show
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors">
+            Save All Settings
+        </button>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleSecret(key) {
+    const inp = document.getElementById('input-' + key);
+    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

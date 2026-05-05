@@ -1,0 +1,401 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}API Setup Guide — YT Automation{% endblock %}
+{% block content %}
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">API Keys Setup Guide</h1>
+        <p class="text-gray-400 text-sm mt-1">Step-by-step instructions to create and configure all required API keys.</p>
+    </div>
+
+    <!-- Status Overview -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {% set platforms = [
+            ("Claude AI", "claude_api_key", "Script Generator", "bg-orange-500"),
+            ("ElevenLabs", "elevenlabs_api_key", "Voiceover", "bg-purple-500"),
+            ("YouTube Data API", "youtube_data_api_key", "Keyword Research", "bg-brand-500"),
+            ("YouTube OAuth", "youtube_client_id", "Video Upload", "bg-green-600"),
+        ] %}
+        {% for name, key, usage, color in platforms %}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
+            <div class="w-8 h-8 {{ color }} rounded-lg mx-auto mb-2 flex items-center justify-center">
+                {% if api_status[key] %}
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                {% else %}
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {% endif %}
+            </div>
+            <p class="text-white text-xs font-semibold">{{ name }}</p>
+            <p class="text-gray-500 text-xs">{{ usage }}</p>
+            <span class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full {{ 'bg-green-900/50 text-green-400' if api_status[key] else 'bg-red-900/50 text-red-400' }}">
+                {{ 'Connected' if api_status[key] else 'Not set' }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="flex gap-1 mb-6 bg-gray-900 border border-gray-800 rounded-xl p-1 overflow-x-auto">
+        {% for tab_id, tab_label, tab_color in [
+            ("claude", "1. Claude AI", "text-orange-400"),
+            ("elevenlabs", "2. ElevenLabs", "text-purple-400"),
+            ("yt-data", "3. YouTube Data API", "text-brand-400"),
+            ("yt-oauth", "4. YouTube OAuth2", "text-green-400"),
+        ] %}
+        <button onclick="showTab('{{ tab_id }}')" id="tab-btn-{{ tab_id }}"
+            class="tab-btn flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap
+                   {% if loop.first %}bg-gray-800 {{ tab_color }}{% else %}text-gray-500 hover:text-gray-300{% endif %}">
+            {{ tab_label }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- ── TAB: Claude ── -->
+    <div id="tab-claude" class="tab-content space-y-4">
+        <div class="bg-gray-900 border border-orange-500/20 rounded-xl overflow-hidden">
+            <div class="bg-orange-500/10 border-b border-orange-500/20 px-5 py-4 flex items-center gap-3">
+                <div class="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white">Claude API Key (Anthropic)</h2>
+                    <p class="text-orange-300 text-xs">Used for AI script generation</p>
+                </div>
+                {% if api_status["claude_api_key"] %}
+                <span class="ml-auto text-xs bg-green-900/50 text-green-400 px-3 py-1 rounded-full">✓ Connected</span>
+                {% endif %}
+            </div>
+            <div class="p-5 space-y-4">
+                {% for step in [
+                    ("Go to Anthropic Console", "Open your browser and navigate to console.anthropic.com. Sign up for a free account if you don't have one."),
+                    ("Open API Keys", "In the left sidebar, click API Keys."),
+                    ("Create a New Key", 'Click the Create Key button. Give it a name like "yt-automation".'),
+                    ("Copy the Key", "Your API key is shown only once — it starts with sk-ant-... Copy it immediately before closing the dialog."),
+                    ("Paste in Settings", 'Go to Settings → Claude AI in this app and paste the key into Claude API Key, then click Save.'),
+                ] %}
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                    <div>
+                        <p class="text-white text-sm font-medium">{{ step[0] }}</p>
+                        <p class="text-gray-400 text-xs mt-0.5">{{ step[1] }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="bg-gray-800 rounded-lg p-4 mt-2">
+                    <p class="text-xs text-gray-400 font-semibold mb-2">Pricing (approximate)</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">$0.003</p>
+                            <p class="text-gray-400">per 1K input tokens</p>
+                        </div>
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">$0.015</p>
+                            <p class="text-gray-400">per 1K output tokens</p>
+                        </div>
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">~$0.05–0.10</p>
+                            <p class="text-gray-400">per 10-min script</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <a href="https://console.anthropic.com" target="_blank"
+                        class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                        Open Anthropic Console →
+                    </a>
+                    <a href="/admin/settings" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors">
+                        Go to Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TAB: ElevenLabs ── -->
+    <div id="tab-elevenlabs" class="tab-content hidden space-y-4">
+        <div class="bg-gray-900 border border-purple-500/20 rounded-xl overflow-hidden">
+            <div class="bg-purple-500/10 border-b border-purple-500/20 px-5 py-4 flex items-center gap-3">
+                <div class="w-9 h-9 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white">ElevenLabs API Key</h2>
+                    <p class="text-purple-300 text-xs">Used for text-to-speech voiceover generation</p>
+                </div>
+                {% if api_status["elevenlabs_api_key"] %}
+                <span class="ml-auto text-xs bg-green-900/50 text-green-400 px-3 py-1 rounded-full">✓ Connected</span>
+                {% endif %}
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Part A — Get Your API Key</p>
+                {% for step in [
+                    ("Go to ElevenLabs", "Open elevenlabs.io and sign up or log in."),
+                    ("Open Profile Settings", "Click your profile icon in the top-right corner and select Profile + API Key."),
+                    ("Copy the API Key", "Under the API Key section, click the copy icon next to your key."),
+                ] %}
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                    <div>
+                        <p class="text-white text-sm font-medium">{{ step[0] }}</p>
+                        <p class="text-gray-400 text-xs mt-0.5">{{ step[1] }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="border-t border-gray-800 pt-4">
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">Part B — Get a Voice ID</p>
+                    {% for step in [
+                        ("Browse Voices", "In the left sidebar, click Voices to open the Voice Library."),
+                        ("Select a Voice", "Click any voice to preview it (Rachel, Adam, etc.)."),
+                        ("Copy the Voice ID", "Below the voice name, you will see a Voice ID — copy the alphanumeric string (e.g. 21m00Tcm4TlvDq8ikWAM)."),
+                    ] %}
+                    <div class="flex gap-3 mb-3">
+                        <div class="w-6 h-6 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ step[0] }}</p>
+                            <p class="text-gray-400 text-xs mt-0.5">{{ step[1] }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 font-semibold mb-2">Free Plan Limits</p>
+                    <table class="w-full text-xs">
+                        <thead><tr class="text-gray-500"><th class="text-left py-1">Plan</th><th class="text-left py-1">Characters/month</th><th class="text-left py-1">Price</th></tr></thead>
+                        <tbody class="text-gray-300 divide-y divide-gray-700">
+                            <tr><td class="py-1.5">Free</td><td>10,000</td><td>$0</td></tr>
+                            <tr><td class="py-1.5">Starter</td><td>30,000</td><td>$5/mo</td></tr>
+                            <tr><td class="py-1.5">Creator</td><td>100,000</td><td>$22/mo</td></tr>
+                        </tbody>
+                    </table>
+                    <p class="text-gray-500 text-xs mt-2">A 10-minute script ≈ 1,500 words ≈ 8,000 characters</p>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <a href="https://elevenlabs.io" target="_blank"
+                        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors">
+                        Open ElevenLabs →
+                    </a>
+                    <a href="/admin/settings" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors">
+                        Go to Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TAB: YouTube Data API ── -->
+    <div id="tab-yt-data" class="tab-content hidden space-y-4">
+        <div class="bg-gray-900 border border-brand-500/20 rounded-xl overflow-hidden">
+            <div class="bg-brand-500/10 border-b border-brand-500/20 px-5 py-4 flex items-center gap-3">
+                <div class="w-9 h-9 bg-brand-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white">YouTube Data API Key</h2>
+                    <p class="text-brand-400 text-xs">Used for keyword research and trending video fetch (read-only, no login required)</p>
+                </div>
+                {% if api_status["youtube_data_api_key"] %}
+                <span class="ml-auto text-xs bg-green-900/50 text-green-400 px-3 py-1 rounded-full">✓ Connected</span>
+                {% endif %}
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="bg-blue-900/20 border border-blue-700/30 rounded-lg px-4 py-3 text-xs text-blue-300">
+                    This requires a Google Cloud account. It's free — you only need a Google/Gmail account.
+                </div>
+
+                {% set yt_data_steps = [
+                    ("Create a Google Cloud Project", "Go to console.cloud.google.com. Click the project dropdown at the top → New Project. Name it yt-automation → click Create. Wait a few seconds and select the new project."),
+                    ("Enable YouTube Data API v3", "In the left sidebar go to APIs & Services → Library. Search for YouTube Data API v3. Click on it → click Enable."),
+                    ("Create an API Key", "Go to APIs & Services → Credentials. Click + Create Credentials → API Key. Your key is generated immediately (starts with AIza...)."),
+                    ("Restrict the Key (Recommended)", "Click Edit API Key. Under API restrictions, select Restrict key. Choose YouTube Data API v3 from the dropdown. Click Save."),
+                    ("Paste in App Settings", "Go to Settings → YouTube in this app and paste into YouTube Data API Key."),
+                ] %}
+                {% for title, desc in yt_data_steps %}
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 bg-brand-500/20 text-brand-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                    <div>
+                        <p class="text-white text-sm font-medium">{{ title }}</p>
+                        <p class="text-gray-400 text-xs mt-0.5">{{ desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 font-semibold mb-2">Free Daily Quota</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">10,000</p>
+                            <p class="text-gray-400">units/day (free)</p>
+                        </div>
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">100 units</p>
+                            <p class="text-gray-400">per keyword search</p>
+                        </div>
+                        <div class="bg-gray-700 rounded p-2 text-center">
+                            <p class="text-white font-semibold">~100</p>
+                            <p class="text-gray-400">searches/day free</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <a href="https://console.cloud.google.com" target="_blank"
+                        class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                        Open Google Cloud Console →
+                    </a>
+                    <a href="/admin/settings" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors">
+                        Go to Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TAB: YouTube OAuth2 ── -->
+    <div id="tab-yt-oauth" class="tab-content hidden space-y-4">
+        <div class="bg-gray-900 border border-green-500/20 rounded-xl overflow-hidden">
+            <div class="bg-green-500/10 border-b border-green-500/20 px-5 py-4 flex items-center gap-3">
+                <div class="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white">YouTube OAuth2 Credentials</h2>
+                    <p class="text-green-300 text-xs">Used to upload videos to your YouTube channel (requires one-time login)</p>
+                </div>
+                {% if api_status["youtube_client_id"] %}
+                <span class="ml-auto text-xs bg-green-900/50 text-green-400 px-3 py-1 rounded-full">✓ Credentials set</span>
+                {% endif %}
+            </div>
+            <div class="p-5 space-y-5">
+                <div class="bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-4 py-3 text-xs text-yellow-300">
+                    Uses the same Google Cloud project as the YouTube Data API above. Complete that step first before continuing here.
+                </div>
+
+                <!-- Sub-section A -->
+                <div>
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">Step A — Configure OAuth Consent Screen</p>
+                    {% for title, desc in [
+                        ("Open OAuth Consent Screen", "In Google Cloud Console → APIs & Services → OAuth consent screen."),
+                        ("Select External", "Choose External as the user type and click Create."),
+                        ("Fill App Info", "Enter App name: YT Automation. Add your Gmail as User support email and Developer contact email. Click Save and Continue."),
+                        ("Add Required Scopes", "On the Scopes page, click Add or Remove Scopes. Search and add: youtube.upload and youtube.readonly. Click Save and Continue."),
+                        ("Add Test User", "On the Test Users page, click + Add Users. Enter your Gmail address (the one connected to your YouTube channel). Click Save and Continue."),
+                    ] %}
+                    <div class="flex gap-3 mb-3">
+                        <div class="w-6 h-6 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ title }}</p>
+                            <p class="text-gray-400 text-xs mt-0.5">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Sub-section B -->
+                <div class="border-t border-gray-800 pt-4">
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">Step B — Create OAuth Client ID</p>
+                    {% for title, desc in [
+                        ("Go to Credentials", "In Google Cloud Console → APIs & Services → Credentials."),
+                        ("Create OAuth Client ID", "Click + Create Credentials → OAuth client ID. Select Web application as the type. Name it YT Automation Local."),
+                        ("Add Redirect URI", "Under Authorized redirect URIs, click + Add URI. Enter exactly: http://localhost:8004/admin/upload/oauth/callback — then click Create."),
+                        ("Copy Client ID and Secret", "A dialog shows your Client ID (ends in .apps.googleusercontent.com) and Client Secret (starts with GOCSPX-). Copy both."),
+                    ] %}
+                    <div class="flex gap-3 mb-3">
+                        <div class="w-6 h-6 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ title }}</p>
+                            <p class="text-gray-400 text-xs mt-0.5">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Sub-section C -->
+                <div class="border-t border-gray-800 pt-4">
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">Step C — Connect in This App (one-time)</p>
+                    {% for title, desc in [
+                        ("Save credentials", "Go to Settings → YouTube in this app. Paste Client ID and Client Secret. Click Save."),
+                        ("Connect your account", "Go to YouTube Upload in the sidebar. Click Connect Account."),
+                        ("Approve on Google", "You are redirected to Google's consent screen. Log in with the Gmail that owns your YouTube channel and click Allow."),
+                        ("Done", "You are redirected back to the app. Status shows Connected — ready to upload. The token is stored automatically and refreshes itself."),
+                    ] %}
+                    <div class="flex gap-3 mb-3">
+                        <div class="w-6 h-6 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ loop.index }}</div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ title }}</p>
+                            <p class="text-gray-400 text-xs mt-0.5">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <a href="https://console.cloud.google.com" target="_blank"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors">
+                        Open Google Cloud Console →
+                    </a>
+                    <a href="/admin/settings" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors">
+                        Go to Settings
+                    </a>
+                    <a href="/admin/upload" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors">
+                        Connect YouTube
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 class="font-semibold text-white mb-4">Troubleshooting</h2>
+        <div class="space-y-2">
+            {% for error, fix in [
+                ("Claude API key not set", "Add key in Settings → Claude AI section."),
+                ("ElevenLabs error 401", "API key is invalid or expired — regenerate it at elevenlabs.io."),
+                ("YouTube API quota exceeded", "Wait 24 hours or request a quota increase in Google Cloud Console."),
+                ("OAuth redirect error", "Make sure http://localhost:8004/admin/upload/oauth/callback is added as an Authorized Redirect URI in Google Cloud."),
+                ("Access blocked by Google", "Your app is in testing mode — add your email as a Test User in OAuth Consent Screen."),
+                ("Token expired", "Go to YouTube Upload page and click Connect Account again to re-authorize."),
+            ] %}
+            <div class="flex gap-3 items-start bg-gray-800/50 rounded-lg px-4 py-3">
+                <span class="text-red-400 text-xs font-mono flex-shrink-0 mt-0.5 w-64">{{ error }}</span>
+                <span class="text-gray-400 text-xs">{{ fix }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(id) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-gray-800');
+        btn.className = btn.className.replace(/text-(orange|purple|brand|green)-400/, 'text-gray-500');
+    });
+    document.getElementById('tab-' + id).classList.remove('hidden');
+    const btn = document.getElementById('tab-btn-' + id);
+    btn.classList.add('bg-gray-800');
+    const colorMap = { claude: 'text-orange-400', elevenlabs: 'text-purple-400', 'yt-data': 'text-brand-400', 'yt-oauth': 'text-green-400' };
+    btn.classList.add(colorMap[id]);
+    btn.classList.remove('text-gray-500', 'text-gray-300');
+}
+</script>
+{% endblock %}

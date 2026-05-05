@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+*.db
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+venv/
+env/
+.venv/
+
+# Uploads (user-generated content)
+app/uploads/videos/*
+app/uploads/audio/*
+app/uploads/assets/*
+!app/uploads/videos/.gitkeep
+!app/uploads/audio/.gitkeep
+!app/uploads/assets/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,68 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Video Queue — YT Automation{% endblock %}
+{% block content %}
+<div class="p-6">
+    <h1 class="text-2xl font-bold text-white mb-6">Video Pipeline</h1>
+
+    <div class="grid grid-cols-5 gap-3 min-h-[500px]">
+        {% set col_styles = {
+            "scripted": ("border-yellow-500/30", "text-yellow-400", "bg-yellow-500/10"),
+            "voiced": ("border-purple-500/30", "text-purple-400", "bg-purple-500/10"),
+            "edited": ("border-blue-500/30", "text-blue-400", "bg-blue-500/10"),
+            "ready": ("border-green-500/30", "text-green-400", "bg-green-500/10"),
+            "uploaded": ("border-gray-500/30", "text-gray-400", "bg-gray-500/10"),
+        } %}
+        {% for status in statuses %}
+        {% set bd, tc, bg = col_styles[status] %}
+        <div class="bg-gray-900 border {{ bd }} rounded-xl flex flex-col">
+            <div class="px-3 py-3 border-b {{ bd }} flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wide {{ tc }}">{{ status }}</span>
+                <span class="text-xs {{ bg }} {{ tc }} px-2 py-0.5 rounded-full">{{ columns[status] | length }}</span>
+            </div>
+            <div class="flex-1 p-2 space-y-2 overflow-y-auto">
+                {% for p in columns[status] %}
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 group">
+                    <a href="/admin/scripts/{{ p.id }}" class="text-xs font-medium text-gray-200 hover:text-brand-400 line-clamp-2">{{ p.title }}</a>
+                    <p class="text-gray-600 text-xs mt-1">{{ p.niche }}</p>
+                    <div class="mt-2 flex gap-1 flex-wrap">
+                        {% for s in statuses %}
+                        {% if s != status %}
+                        <button onclick="moveProject('{{ p.id }}', '{{ s }}')"
+                            class="text-xs px-1.5 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white transition-colors">
+                            → {{ s }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if failed %}
+    <div class="mt-4 bg-red-900/20 border border-red-700/30 rounded-xl p-4">
+        <h3 class="text-red-400 text-sm font-semibold mb-2">Failed ({{ failed | length }})</h3>
+        <div class="space-y-1">
+            {% for p in failed %}
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">{{ p.title }}</span>
+                <button onclick="moveProject('{{ p.id }}', 'scripted')" class="text-xs text-brand-400 hover:underline">Retry</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function moveProject(projectId, newStatus) {
+    const form = new FormData();
+    form.append('status', newStatus);
+    await fetch(`/admin/queue/${projectId}/status`, { method: 'POST', body: form });
+    window.location.reload();
+}
+</script>
+{% endblock %}

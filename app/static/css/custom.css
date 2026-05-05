@@ -1,0 +1,4 @@
+/* Minimal overrides — Tailwind CDN handles everything else */
+.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+audio::-webkit-media-controls-panel { background-color: #1f2937; }
