@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.config import get_settings
 from app.dependencies import RedirectException
@@ -13,6 +14,7 @@ from app.routers.admin import (
 settings_obj = get_settings()
 
 app = FastAPI(title=settings_obj.APP_NAME, debug=settings_obj.DEBUG)
+templates = Jinja2Templates(directory="app/templates")
 
 
 @app.exception_handler(RedirectException)
@@ -33,11 +35,13 @@ app.include_router(niche_research.router)
 app.include_router(video_queue.router)
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    token = request.cookies.get("access_token")
-    if token:
-        return RedirectResponse(url="/admin/dashboard", status_code=302)
+    return templates.TemplateResponse("landing.html", {"request": request})
+
+
+@app.get("/login")
+async def login_redirect():
     return RedirectResponse(url="/auth/login", status_code=302)
 
 
